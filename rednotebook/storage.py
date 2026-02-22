@@ -25,6 +25,7 @@ import stat
 import sys
 
 from rednotebook.data import Month
+from rednotebook import crypto
 
 
 try:
@@ -64,16 +65,17 @@ def get_journal_files(data_dir):
 
 
 def _load_month_from_disk(path, year_number, month_number):
-    """
-    Load the month file at path and return a month object
-
-    If an error occurs, return None
-    """
     try:
-        # Try to read the contents of the file.
-        with codecs.open(path, "rb", encoding="utf-8") as month_file:
-            logging.debug(f'Loading file "{path}"')
-            month_contents = yaml.load(month_file, Loader=Loader)
+        with open(path, "rb") as month_file:
+            logging.debug(f'Loading encrypted file "{path}"')
+            encrypted_content = month_file.read()
+            try:
+                decrypted_content = crypto.decrypt_data(encrypted_content)
+            except ValueError as e:
+                logging.error(f"Kriptográfiai hiba a {path} fájlnál: {e}")
+                sys.exit(1) # Biztonsági okokból azonnal leállunk
+                
+            month_contents = yaml.load(decrypted_content.decode('utf-8'), Loader=Loader)
             return Month(
                 year_number,
                 month_number,
@@ -136,10 +138,12 @@ def _save_month_to_disk(month, journal_dir):
     # Do not save empty month files.
     if not content and not os.path.exists(filename):
         return False
-
-    with codecs.open(new, "wb", encoding="utf-8") as f:
-        # Write readable unicode and no Python directives.
-        yaml.dump(content, f, Dumper=Dumper, allow_unicode=True)
+    
+    yaml_string = yaml.dump(content, Dumper=Dumper, allow_unicode=True)
+    encrypted_bytes = crypto.encrypt_data(yaml_string.encode('utf-8'))
+    
+    with open(new, "wb") as f:
+        f.write(encrypted_bytes)
 
     # Check that month file was written to disk successfully.
     written_month = _load_month_from_disk(new, month.year_number, month.month_number)

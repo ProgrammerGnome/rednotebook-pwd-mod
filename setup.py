@@ -88,7 +88,7 @@ parameters = {
     "license": "GPL",
     "keywords": "journal, diary",
     "cmdclass": {"build_py": build_py, "install": install},
-    "install_requires": ["PyGObject", "PyYAML"],
+    "install_requires": ["PyGObject", "PyYAML", "cryptography"],
     "extras_require": {"spellcheck": ["pyenchant"]},
     "entry_points": {
         "gui_scripts": [

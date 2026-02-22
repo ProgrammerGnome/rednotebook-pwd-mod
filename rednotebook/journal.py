@@ -204,7 +204,7 @@ except (ImportError, AssertionError) as e:
     sys.exit(1)
 
 
-from rednotebook import backup, storage
+from rednotebook import backup, storage, crypto
 from rednotebook.data import Month
 from rednotebook.gui.main_window import MainWindow
 from rednotebook.util import dates
@@ -417,6 +417,31 @@ class Journal(Gtk.Application):
         self.months.clear()
         self.frame.search_box.clear()
         self.frame.day_text_field.clear_buffers()
+
+        dialog = Gtk.MessageDialog(
+            transient_for=self.frame.main_frame if self.frame else None,
+            flags=0,
+            message_type=Gtk.MessageType.QUESTION,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            text="Adatbázis titkosítva"
+        )
+        dialog.format_secondary_text("Kérlek add meg a jelszót a napló megnyitásához:")
+        
+        entry = Gtk.Entry()
+        entry.set_visibility(False)
+        entry.set_activates_default(True)
+        dialog.get_message_area().pack_end(entry, True, True, 0)
+        dialog.show_all()
+        
+        response = dialog.run()
+        password = entry.get_text()
+        dialog.destroy()
+        
+        if response != Gtk.ResponseType.OK or not password:
+            logging.error("Érvénytelen jelszó vagy megszakított belépés. Kilépés.")
+            sys.exit(1)
+        
+        crypto.init_cipher(password, data_dir)
 
         self.months = storage.load_all_months_from_disk(data_dir)
 
