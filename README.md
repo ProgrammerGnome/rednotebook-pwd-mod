@@ -1,6 +1,6 @@
 # RedNotebook - modded version
 
-RedNotebook is a modern desktop journal. It lets you format, tag and
+[RedNotebook](https://rednotebook.app/) is a modern desktop journal. It lets you format, tag and
 search your entries. You can also add pictures, links and customizable
 templates, spell check your notes, and export to plain text, HTML,
 Latex or PDF.
